@@ -17,6 +17,10 @@ var pdfModule = (function () {
     var defaultOrientation = 'letter';
     var defaultFontSize = 11;
     var startLineY = 1.5;
+    var disclaimerText = "I hereby waive any right to collect payment from the above-mentioned enrollee for the " +
+        "aforementioned services for which payment has been denied by the above-referenced " +
+        "health plan.  I understand that the signing of this waiver does not negate my right to " +
+        "request further appeal under 42 CFR 422.600.";
 
     //=================================================================================================================
     // Module methods
@@ -55,14 +59,13 @@ var pdfModule = (function () {
         return pdfRec;
     }
 
-    function createWOL(pdfRec, MedicaidId, EnrolleeName, ProviderName) {
+    function createWOL(pdfRec, MedicaidId, EnrolleeName, ProviderName, BeginDOS, EndDOS, Signature, SignatureDate) {
         pdfRec.maxLineChars = 95;
         pdfRec.pdf.setLineWidth(0.013);
         var coordX = 0.0;
         var coordY = 0.0;
 
-        // Negative is used to indicate BOLD
-        pdfRec.lineColIncrArray = [-2.5];  // Where you want the column to start
+        pdfRec.lineColIncrArray = [-2.6];  // Where you want the column to start (Negative is used to indicate BOLD)
         pdfRec = addLine(pdfRec, ['WAIVER OF LIABILITY STATEMENT'], null, 12, 0.4);
 
         coordX = 5.8;
@@ -70,26 +73,44 @@ var pdfModule = (function () {
         coordY = 1.0;
         pdfRec = addLine(pdfRec, [MedicaidId], null, 10, coordY-0.1); // font, and how far down
         // startX, startY, endX, endY
-        //pdfRec.pdf.line(5.8, 1.0, 7.2, 1.0);
         pdfRec.pdf.line(coordX, coordY, coordX + 1.5, coordY);
         pdfRec = addLine(pdfRec, ['Medicare/HIC Number'], null, 10, coordY+0.2); // font, and how far down
 
         coordX = 1.0;
         coordY = 1.5;
 
-        pdfRec.lineColIncrArray = [coordX];  // Where you want the column to start
-        pdfRec = addLine(pdfRec, [EnrolleeName], null, 10, coordY-0.1); // font, and how far down
-        // startX, startY, endX, endY
+        pdfRec.lineColIncrArray = [coordX];
+        pdfRec = addLine(pdfRec, [EnrolleeName], null, 10, coordY-0.1);
         pdfRec.pdf.line(coordX, coordY, coordX + 2.5, coordY);
-        pdfRec = addLine(pdfRec, ["Enrollee's Name"], null, 10, coordY+0.2); // font, and how far down
+        pdfRec = addLine(pdfRec, ["Enrollee's Name"], null, 10, coordY+0.2);
 
-        pdfRec.lineColIncrArray = [coordX];  // Where you want the column to start
         coordY = coordY + 0.8;
-        pdfRec = addLine(pdfRec, [ProviderName], null, 10, coordY - 0.1); // font, and how far down
-        // startX, startY, endX, endY
+        pdfRec = addLine(pdfRec, [ProviderName], null, 10, coordY - 0.1);
         pdfRec.pdf.line(coordX, coordY, coordX + 2.5, coordY);
-        pdfRec = addLine(pdfRec, ["Provider"], null, 10, coordY + 0.2); // font, and how far down
-        
+        pdfRec = addLine(pdfRec, ["Provider"], null, 10, coordY + 0.2);
+
+        coordY = coordY + 0.8;
+        pdfRec = addLine(pdfRec, ['Caresource'], null, 10, coordY - 0.1);
+        pdfRec.pdf.line(coordX, coordY, coordX + 2.5, coordY);
+        pdfRec = addLine(pdfRec, ["Health Plan"], null, 10, coordY + 0.2);
+
+        coordY = coordY + 0.8;
+        pdfRec = addLine(pdfRec, [BeginDOS + ' to ' + EndDOS], null, 10, coordY - 0.1);
+        pdfRec.pdf.line(coordX, coordY, coordX + 2.5, coordY);
+        pdfRec = addLine(pdfRec, ["Dates of Service"], null, 10, coordY + 0.2);
+
+        coordY = coordY + 0.7;
+        pdfRec = addLine(pdfRec, [disclaimerText], null, 10, coordY);
+
+        coordY = coordY + 1.4;
+        pdfRec = addLine(pdfRec, [Signature], null, 10, coordY - 0.1);
+        pdfRec.pdf.line(coordX, coordY, coordX + 2.5, coordY);
+        pdfRec = addLine(pdfRec, ["Signature"], null, 10, coordY + 0.2);
+
+        coordY = coordY + 0.8;
+        pdfRec = addLine(pdfRec, [SignatureDate], null, 10, coordY - 0.1);
+        pdfRec.pdf.line(coordX, coordY, coordX + 2.5, coordY);
+        pdfRec = addLine(pdfRec, ["Date"], null, 10, coordY + 0.2);
 
         return pdfRec;
     }
@@ -106,25 +127,13 @@ var pdfModule = (function () {
 
             // X (horizontal), Y (vertical)
 
-            // Information correction area
-            /*
-            pdfRec.pdf.setLineWidth(0.013);
             // Box around area
-            //pdfRec.pdf.rect(0.4, 4.0, 4.4, 2.0);   Not including the email line
-            pdfRec.pdf.rect(0.4, 4.0, 4.4, 2.6);
-            // Lines for address corrections
-            pdfRec.pdf.line(1.7, 4.95, 4.5, 4.95);
-            pdfRec.pdf.line(1.7, 5.25, 4.5, 5.25);
-            pdfRec.pdf.line(1.7, 5.55, 4.5, 5.55);
-            pdfRec.pdf.line(1.7, 5.85, 4.5, 5.85);
+            //pdfRec.pdf.rect(0.4, 4.0, 4.4, 2.6);
 
             // Checkboxes for survey questions
             // empty square (X,Y, X length, Y length)
-            pdfRec.pdf.setLineWidth(0.015);
-            //pdfRec.pdf.rect(0.5, 6.4, 0.2, 0.2); 
-            pdfRec.pdf.rect(0.5, 6.7, 0.2, 0.2);
-            //pdfRec.pdf.rect(0.5, 7.0, 0.2, 0.2); 
-            */
+            //pdfRec.pdf.setLineWidth(0.015);
+            //pdfRec.pdf.rect(0.5, 6.7, 0.2, 0.2);
 
             pdfRec.lineY = startLineY;
             pdfRec.fontSize = defaultFontSize;
@@ -207,8 +216,7 @@ var pdfModule = (function () {
     // This is what is exposed from this Module
     return {
         init,
-        createWOL,
-        addLine
+        createWOL
     };
 
 })(); // var pdfModule = (function(){

@@ -37,13 +37,14 @@ var main = (function () {
         // Create a pdfRec and initialize the PDF object
         pdfRec = pdfModule.init('Waiver of Liability');
 
-        // function to add template formatting
-
-        // function to add variables
-
-        // Call function to format the yearly dues statement for an individual property
-        //pdfRec = pdfModule.formatYearlyDuesStatement(pdfRec, hoaRec, firstNotice);
-        pdfRec = pdfModule.createWOL(pdfRec, $MedicaidId.val(), $EnrolleeName.val(), $ProviderName.val());
+        pdfRec = pdfModule.createWOL(pdfRec, 
+            $MedicaidId.val(), 
+            $EnrolleeName.val(), 
+            $ProviderName.val(), 
+            $BeginDOS.val(),
+            $EndDOS.val(),
+            $Signature.val(),
+            $SignatureDate.val());
 
         //filedata: btoa(pdfRec.pdf.output())
         // Just download the PDF for the test
