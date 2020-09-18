@@ -55,58 +55,47 @@ var pdfModule = (function () {
         return pdfRec;
     }
 
-
-    // function to format a Yearly dues statement and add to the PDF
-    function formatYearlyDuesStatement(pdfRec, hoaRec, firstNotice) {
-        var ownerRec = hoaRec.ownersList[0];
+    function createWOL(pdfRec, MedicaidId, EnrolleeName, ProviderName) {
         pdfRec.maxLineChars = 95;
+        pdfRec.pdf.setLineWidth(0.013);
+        var coordX = 0.0;
+        var coordY = 0.0;
 
+        // Negative is used to indicate BOLD
+        pdfRec.lineColIncrArray = [-2.5];  // Where you want the column to start
+        pdfRec = addLine(pdfRec, ['WAIVER OF LIABILITY STATEMENT'], null, 12, 0.4);
 
-        pdfRec.lineColIncrArray = [-4.5];
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[config.getVal('hoaName')], null, 13, 0.5);
-        pdfRec.lineColIncrArray = [4.5, -3.05];
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[pdfRec.title + " for Fiscal Year ", hoaRec.assessmentsList[0].FY], null, 12, 0.8);
+        coordX = 5.8;
+        pdfRec.lineColIncrArray = [coordX];  // Where you want the column to start
+        coordY = 1.0;
+        pdfRec = addLine(pdfRec, [MedicaidId], null, 10, coordY-0.1); // font, and how far down
+        // startX, startY, endX, endY
+        //pdfRec.pdf.line(5.8, 1.0, 7.2, 1.0);
+        pdfRec.pdf.line(coordX, coordY, coordX + 1.5, coordY);
+        pdfRec = addLine(pdfRec, ['Medicare/HIC Number'], null, 10, coordY+0.2); // font, and how far down
 
-        // hoa name and address for return label
-        pdfRec.lineIncrement = 0.2;
-        pdfRec.lineColIncrArray = [1.0];
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[config.getVal('hoaName')], null, 10, 1.0);
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[config.getVal('hoaAddress1')]);
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[config.getVal('hoaAddress2')]);
+        coordX = 1.0;
+        coordY = 1.5;
 
-        pdfRec.lineIncrement = 0.21;
-        pdfRec.lineColIncrArray = [4.5, 1.3];
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,["For the Period: ", 'Oct 1st, ' + noticeYear + ' thru Sept 30th, ' + hoaRec.assessmentsList[0].FY], null, 11, 1.1);
-        pdfRec.lineColIncrArray = [-4.5, -1.3];
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,["Notice Date: ", noticeDate]);
+        pdfRec.lineColIncrArray = [coordX];  // Where you want the column to start
+        pdfRec = addLine(pdfRec, [EnrolleeName], null, 10, coordY-0.1); // font, and how far down
+        // startX, startY, endX, endY
+        pdfRec.pdf.line(coordX, coordY, coordX + 2.5, coordY);
+        pdfRec = addLine(pdfRec, ["Enrollee's Name"], null, 10, coordY+0.2); // font, and how far down
 
-
-        pdfRec.lineColIncrArray = [-4.5];
-        //pdfRec = yearlyDuesStatementAddLine(pdfRec,['']);
-        //pdfRec = yearlyDuesStatementAddLine(pdfRec,['    Contact Information:']);
-        pdfRec.lineColIncrArray = [4.5];
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[ownerRec.Owner_Name1 + ' ' + ownerRec.Owner_Name2]);
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[hoaRec.Parcel_Location]);
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[hoaRec.Property_City + ', ' + hoaRec.Property_State + ' ' + hoaRec.Property_Zip]);
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,['Phone # ' + ownerRec.Owner_Phone]);
-        pdfRec = yearlyDuesStatementAddLine(pdfRec, ['Email: ' + hoaRec.DuesEmailAddr]);
-        pdfRec = yearlyDuesStatementAddLine(pdfRec, ['Email2: ' + ownerRec.EmailAddr2]);
-
-        // Display the mailing address
-        pdfRec.lineIncrement = 0.21;
-        pdfRec.lineColIncrArray = [1.0];
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[displayAddress1], null, 11, 2.5);
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[displayAddress2]);
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[displayAddress3]);
-        pdfRec = yearlyDuesStatementAddLine(pdfRec,[displayAddress4]);
-
-
+        pdfRec.lineColIncrArray = [coordX];  // Where you want the column to start
+        coordY = coordY + 0.8;
+        pdfRec = addLine(pdfRec, [ProviderName], null, 10, coordY - 0.1); // font, and how far down
+        // startX, startY, endX, endY
+        pdfRec.pdf.line(coordX, coordY, coordX + 2.5, coordY);
+        pdfRec = addLine(pdfRec, ["Provider"], null, 10, coordY + 0.2); // font, and how far down
+        
 
         return pdfRec;
-    } // End of function formatYearlyDuesStatement(hoaRec) {
+    }
 
     //Function to add a line to the Yearly Dues Statement PDF
-    function yearlyDuesStatementAddLine(pdfRec, pdfLineArray, pdfLineHeaderArray, fontSize, lineYStart) {
+    function addLine(pdfRec, pdfLineArray, pdfLineHeaderArray, fontSize, lineYStart) {
         pdfRec.lineCnt++;
         var X = 0.0;
         // X (horizontal), Y (vertical)
@@ -116,20 +105,26 @@ var pdfModule = (function () {
             pdfRec.pageCnt++;
 
             // X (horizontal), Y (vertical)
-            //pdfRec.pdf.setFontSize(9);
-            //pdfRec.pdf.text(8.05, 0.3, pdfRec.pageCnt.toString());
-            //pdfRec.pdf.addImage(config.getLogoImgData(), 'JPEG', 0.42, 0.9, 0.53, 0.53);
 
-            // Tri-fold lines
-            pdfRec.pdf.setLineWidth(0.01);
-            pdfRec.pdf.line(X, 3.75, 8.5, 3.75);
-            pdfRec.pdf.setLineWidth(0.02);
-            var segmentLength = 0.2;
-            pdfRec = _dottedLine(pdfRec, 0, 7.5, 8.5, 7.5, segmentLength)
-
-            //pdfRec.pdf.rect(0.4, 4.0, 4.4, 2.6);
+            // Information correction area
+            /*
+            pdfRec.pdf.setLineWidth(0.013);
+            // Box around area
+            //pdfRec.pdf.rect(0.4, 4.0, 4.4, 2.0);   Not including the email line
+            pdfRec.pdf.rect(0.4, 4.0, 4.4, 2.6);
             // Lines for address corrections
-            //pdfRec.pdf.line(1.7, 4.65, 4.5, 4.65);
+            pdfRec.pdf.line(1.7, 4.95, 4.5, 4.95);
+            pdfRec.pdf.line(1.7, 5.25, 4.5, 5.25);
+            pdfRec.pdf.line(1.7, 5.55, 4.5, 5.55);
+            pdfRec.pdf.line(1.7, 5.85, 4.5, 5.85);
+
+            // Checkboxes for survey questions
+            // empty square (X,Y, X length, Y length)
+            pdfRec.pdf.setLineWidth(0.015);
+            //pdfRec.pdf.rect(0.5, 6.4, 0.2, 0.2); 
+            pdfRec.pdf.rect(0.5, 6.7, 0.2, 0.2);
+            //pdfRec.pdf.rect(0.5, 7.0, 0.2, 0.2); 
+            */
 
             pdfRec.lineY = startLineY;
             pdfRec.fontSize = defaultFontSize;
@@ -144,18 +139,76 @@ var pdfModule = (function () {
 
         pdfRec.pdf.setFontSize(pdfRec.fontSize);
 
+        if (pdfLineHeaderArray != null && pdfLineHeaderArray !== 'undefined') {
+            X = 0.0;
+            // Loop through all the column headers in the array
+            for (i = 0; i < pdfLineArray.length; i++) {
+                if (pdfRec.lineColIncrArray[i] < 0) {
+                    pdfRec.pdf.setFontType("bold");
+                } else {
+                    pdfRec.pdf.setFontType("normal");
+                }
+                X += Math.abs(pdfRec.lineColIncrArray[i]);
+                pdfRec.pdf.text(X, pdfRec.lineY, '' + pdfLineHeaderArray[i]);
+            }
+            pdfRec.lineY += pdfRec.lineIncrement / 2.0;
+
+            X = pdfRec.lineColIncrArray[0];
+            pdfRec.pdf.setLineWidth(0.015);
+            pdfRec.pdf.line(X, pdfRec.lineY, 8, pdfRec.lineY);
+            pdfRec.lineY += pdfRec.lineIncrement;
+        }
+
+        var textLine = '';
+        var breakPos = 0;
+        var i = 0;
+        var j = 0;
+        X = 0.0;
+        // Loop through all the columns in the array
+        for (i = 0; i < pdfLineArray.length; i++) {
+            if (pdfRec.lineColIncrArray[i] < 0) {
+                pdfRec.pdf.setFontType("bold");
+            } else {
+                pdfRec.pdf.setFontType("normal");
+            }
+
+            X += Math.abs(pdfRec.lineColIncrArray[i]);
+            textLine = '' + pdfLineArray[i];
+
+            while (textLine.length > 0) {
+                if (textLine.length > pdfRec.maxLineChars) {
+                    breakPos = pdfRec.maxLineChars;
+                    j = breakPos;
+                    for (j; j > 0; j--) {
+                        if (textLine[j] == ' ') {
+                            breakPos = j;
+                            break;
+                        }
+                    }
+
+                    pdfRec.pdf.text(X, pdfRec.lineY, textLine.substr(0, breakPos));
+                    pdfRec.lineY += pdfRec.lineIncrement;
+                    textLine = textLine.substr(breakPos, textLine.length - breakPos);
+
+                } else {
+                    pdfRec.pdf.text(X, pdfRec.lineY, textLine);
+                    textLine = '';
+                }
+            } // while (textLine.length > 0) {
+
+        } // for (i = 0; i < pdfLineArray.length; i++) {
         pdfRec.lineY += pdfRec.lineIncrement;
         pdfRec.pdf.setFontType("normal");
 
         return pdfRec;
-    } // End of function yearlyDuesStatementAddLine(pdfLineArray,pdfLineHeaderArray) {
+    }
 
     //=================================================================================================================
     // This is what is exposed from this Module
     return {
         init,
-        formatYearlyDuesStatement,
-        yearlyDuesStatementAddLine
+        createWOL,
+        addLine
     };
 
 })(); // var pdfModule = (function(){

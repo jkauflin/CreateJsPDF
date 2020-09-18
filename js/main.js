@@ -9,6 +9,8 @@
 var main = (function () {
     'use strict';  // Force declaration of variables before use (among other things)
 
+    var pdfRec;
+
     var $document = $(document);
     var $BeginDOS = $("#BeginDOS");
     var $EndDOS = $("#EndDOS");
@@ -40,10 +42,12 @@ var main = (function () {
         // function to add variables
 
         // Call function to format the yearly dues statement for an individual property
-        pdfRec = pdfModule.formatYearlyDuesStatement(pdfRec, hoaRec, firstNotice);
+        //pdfRec = pdfModule.formatYearlyDuesStatement(pdfRec, hoaRec, firstNotice);
+        pdfRec = pdfModule.createWOL(pdfRec, $MedicaidId.val(), $EnrolleeName.val(), $ProviderName.val());
 
         //filedata: btoa(pdfRec.pdf.output())
-
+        // Just download the PDF for the test
+        pdfRec.pdf.save("WOL.pdf");
     }
 
     //=================================================================================================================
